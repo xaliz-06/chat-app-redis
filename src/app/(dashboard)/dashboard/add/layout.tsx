@@ -1,21 +1,48 @@
-import { FC, ReactNode } from "react";
-import { notFound } from "next/navigation";
+import { ReactNode } from "react";
 
-import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import Image from "next/image";
 import { Separator } from "@/components/ui/separator";
+import { Icon, Icons } from "@/components/Icons";
+
+import { currentUser } from "@clerk/nextjs/server";
+import { notFound } from "next/navigation";
+import CustomSignOutButton from "@/components/ui/CustomSignOutButton";
+import FriendRequestsOption from "@/components/friend-request-options";
+import { fetchRedis } from "@/helpers/redis";
+import { UserId } from "@/lib/utils";
 
 interface LayoutProps {
   children: ReactNode;
 }
 
-interface SidebarOptions {}
+interface SidebarOption {
+  id: number;
+  name: string;
+  href: string;
+  Icon: Icon;
+}
+
+const sidebarOptions: SidebarOption[] = [
+  {
+    id: 1,
+    name: "Add friend",
+    href: "/dashboard/add",
+    Icon: "UserPlus",
+  },
+];
 
 const Layout = async ({ children }: LayoutProps) => {
   const user = await currentUser();
 
   if (!user) notFound();
+
+  const unseenRequestCount = (
+    (await fetchRedis(
+      "smembers",
+      `user:${user.id}:incoming_friend_requests`
+    )) as UserId[]
+  ).length;
 
   return (
     <div className="w-full flex h-full">
@@ -33,17 +60,76 @@ const Layout = async ({ children }: LayoutProps) => {
           </h2>
         </Link>
         <Separator className="my-1 mx-auto w-[90%]" />
+        <div className="flex flex-col">
+          <div className="font-semibold leading-3 text-gray-400">Overview</div>
+          <ul
+            role="list"
+            className="mt-4 space-x-1 flex justify-start items-center"
+          >
+            {sidebarOptions.map((option) => {
+              const Icon = Icons[option.Icon];
+              return (
+                <li key={option.id}>
+                  <Link
+                    href={option.href}
+                    className="text-emerald-700 transition-all hover:text-white bg-emerald-500/20 hover:bg-emerald-500/80 group flex flex-col justify-center items-center gap-3 rounded-lg text-xs shrink-0 p-4"
+                  >
+                    <div className="flex w-12 h-12 items-center justify-center flex-col gap-y-1">
+                      <span className="text-xs">
+                        <Icon className="w-5 h-5" />
+                      </span>
+                      <span className="truncate text-xs font-semibold">
+                        {option.name}
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              );
+            })}
+            <li>
+              <FriendRequestsOption
+                sessionId={user.id}
+                initialUnseenRequestCount={unseenRequestCount}
+              />
+            </li>
+          </ul>
+        </div>
+        <Separator className="my-1 mx-auto w-[90%]" />
         <div className="text-xl font-semibold leading-6 text-gray-400">
           Your Chats
         </div>
         <nav className="flex flex-1 col-1">
           <ul role="list" className="flex flex-1 flex-col gap-y-5">
+            <li></li>
             <li>Chat 1</li>
             <li>Chat 2</li>
             <li>Chat 3</li>
             <li>Chat 4</li>
           </ul>
         </nav>
+        <div className="-mx-6 mt-auto flex items-center">
+          <div className="flex flex-1 items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-3 text-gray-900">
+            <div className="relative h-8 w-8 bg-gray-50">
+              <Image
+                fill
+                referrerPolicy="no-referrer"
+                className="rounded-full"
+                src={user.imageUrl || ""}
+                alt="Your profile picture"
+              />
+            </div>
+            <span className="sr-only">Your Profile</span>
+            <div className="flex flex-col gap-y-1">
+              <span aria-hidden="true" className="text-xl text-emerald-600">
+                {user.username}
+              </span>
+              <span className="text-xs text-zinc-400" aria-hidden="true">
+                {user.primaryEmailAddress?.emailAddress}
+              </span>
+            </div>
+          </div>
+          <CustomSignOutButton className="h-full aspect-square" />
+        </div>
       </div>
       <div className="h-full">{children}</div>
     </div>

@@ -8,7 +8,7 @@ import AddFriendByTag from "@/components/add-friend-by-tag";
 
 const page: FC = () => {
   return (
-    <main className="mt-10 pt-8 px-8 flex justify-center">
+    <main className="mt-4 pt-8 px-8 flex flex-col justify-center">
       <Card className="w-[60vw] p-8 h-auto">
         <CardHeader>
           <h1 className="font-bold text-5xl mb-8 text-emerald-500">
