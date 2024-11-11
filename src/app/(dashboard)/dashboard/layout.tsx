@@ -11,6 +11,8 @@ import CustomSignOutButton from "@/components/ui/CustomSignOutButton";
 import FriendRequestsOption from "@/components/friend-request-options";
 import { fetchRedis } from "@/helpers/redis";
 import { UserId } from "@/lib/utils";
+import { getFriendsByUserId } from "@/helpers/get-friends-by-user-id";
+import SidebarChatList from "@/components/sidebar-chat-list";
 
 interface LayoutProps {
   children: ReactNode;
@@ -43,6 +45,8 @@ const Layout = async ({ children }: LayoutProps) => {
       `user:${user.id}:incoming_friend_requests`
     )) as UserId[]
   ).length;
+
+  const friends = await getFriendsByUserId(user.id);
 
   return (
     <div className="w-full flex h-full">
@@ -95,18 +99,16 @@ const Layout = async ({ children }: LayoutProps) => {
           </ul>
         </div>
         <Separator className="my-1 mx-auto w-[90%]" />
-        <div className="text-xl font-semibold leading-6 text-gray-400">
-          Your Chats
-        </div>
-        <nav className="flex flex-1 col-1">
-          <ul role="list" className="flex flex-1 flex-col gap-y-5">
-            <li></li>
-            <li>Chat 1</li>
-            <li>Chat 2</li>
-            <li>Chat 3</li>
-            <li>Chat 4</li>
-          </ul>
-        </nav>
+        {friends.length > 0 ? (
+          <>
+            <div className="text-xl font-semibold leading-6 text-gray-400">
+              Your Chats
+            </div>
+
+            <SidebarChatList friends={friends} userId={user.id} />
+          </>
+        ) : null}
+
         <div className="-mx-6 mt-auto flex items-center">
           <div className="flex flex-1 items-center gap-x-4 px-6 py-3 text-sm font-semibold leading-3 text-gray-900">
             <div className="relative h-8 w-8 bg-gray-50">
@@ -131,7 +133,9 @@ const Layout = async ({ children }: LayoutProps) => {
           <CustomSignOutButton className="h-full aspect-square" />
         </div>
       </div>
-      <div className="h-full">{children}</div>
+      <aside className="max-h-screen container py-6 md:py-4 w-full">
+        {children}
+      </aside>
     </div>
   );
 };

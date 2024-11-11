@@ -1,12 +1,12 @@
 import React from "react";
 import { notFound } from "next/navigation";
 
-import { User } from "@/lib/utils";
 import { currentUser } from "@clerk/nextjs/server";
 
 import { fetchRedis } from "@/helpers/redis";
 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import FriendRequests from "@/components/friend-requests";
 
 const Page = async () => {
   const user = await currentUser();
@@ -43,24 +43,10 @@ const Page = async () => {
           </h1>
         </CardHeader>
         <CardContent>
-          {incomingFriendRequests.length > 0 ? (
-            <ul>
-              {incomingFriendRequests.map((request) => (
-                <li
-                  key={request.senderId}
-                  className="flex justify-between items-center gap-4"
-                >
-                  <span className="text-black">{request.senderUsername}</span>
-                  <div>
-                    <button>Accept</button>
-                    <button>Reject</button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            "NO FRIEND REQUESTS"
-          )}
+          <FriendRequests
+            incomingFriendRequests={incomingFriendRequests}
+            userId={user.id}
+          />
         </CardContent>
       </Card>
     </main>

@@ -15,3 +15,9 @@ export type User = {
 };
 
 export type UserId = string;
+
+export function chatHrefConstructor(id_1: string, id_2: string) {
+  const sortedIds = [id_1, id_2].sort();
+
+  return `${sortedIds[0]}--${sortedIds[1]}`;
+}
